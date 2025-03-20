@@ -3,6 +3,13 @@
 ## 项目概述
 基于Spring Boot 2.7.0的企业级应用脚手架，集成MyBatis和MySQL数据库支持，包含基础安全配置。
 
+## 功能特性
+- 用户认证模块：提供注册/登录功能，集成Spring Security实现权限控制
+- 数据持久化：通过MyBatis实现MySQL数据库的CRUD操作
+- REST API：基于Spring MVC实现标准RESTful接口
+- 安全配置：包含CSRF防护和基础请求验证机制
+- 容器化支持：提供Docker镜像构建配置
+
 ## 技术栈
 - **核心框架**: Spring Boot 2.7.0
 - **ORM框架**: MyBatis Spring Boot Starter 2.2.2
@@ -53,7 +60,15 @@ mvn test
 curl http://localhost:8080/api/endpoint
 ```
 
+## 版本更新
+- 0.1.0 (2024-03-20) 初始版本，包含核心用户认证模块
+
 ## 安全规范
+
+## 文档维护规范
+1. 新增功能开发需同步更新对应功能模块文档
+2. 版本发布时需在更新日志中添加版本说明
+3. 接口变更需同步更新Swagger文档和测试用例
 1. 生产环境必须配置HTTPS
 2. 数据库密码应通过环境变量注入
 3. 定期检查Spring Security的CVE公告
