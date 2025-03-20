@@ -1,0 +1,23 @@
+# Java
+/target/
+*.jar
+*.war
+*.ear
+
+# IDE
+.idea/
+*.iml
+*.ipr
+
+# Maven
+pom.xml.versionsBackup
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# Logs
+*.log
+
+# System Files
+.DS_Store
