@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 public class PurchaseRecord {
     private Long id;
     private Long userId;
+    private String username;
     private Long productId;
     private Integer quantity;
     private BigDecimal amount;
@@ -13,6 +14,7 @@ public class PurchaseRecord {
 
     // Getters and Setters
     public PurchaseRecord(String username, Long productId, Integer quantity){
+        this.username = username;
         // Bug 修复：原构造函数没有 LocalDateTime 参数，且当前方法为构造函数，不能有返回值
         this.userId = null; // 假设 userId 后续再处理
         this.productId = productId;

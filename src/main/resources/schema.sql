@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS purchase_records (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
+    username VARCHAR(50) NOT NULL,
     product_id INT NOT NULL,
     quantity INT NOT NULL,
     purchase_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
