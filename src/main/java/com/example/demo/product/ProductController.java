@@ -6,7 +6,7 @@ import java.util.List;
 import com.example.demo.UserService; // 假设 UserService 类在 com.example.demo.user 包下，需根据实际情况调整
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/products")
 public class ProductController {
     private final ProductMapper productMapper;
 // 为了解决 "UserService cannot be resolved to a type" 问题，需要导入 UserService 类。

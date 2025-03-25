@@ -32,8 +32,22 @@ public class UserController {
      * 处理用户登录请求
      * @PostMapping 映射HTTP POST请求到/user/login路径
      */
+    
+    // 假设我们在这里定义LoginResponse类
+    static class LoginResponse {
+        private String token;
+
+        public LoginResponse(String token) {
+            this.token = token;
+        }
+
+        public String getToken() {
+            return token;
+        }
+    }
     @PostMapping("/login")
-    public String login(@RequestBody User user) {
-        return userService.login(user);
+    public LoginResponse login(@RequestBody User user) {
+        String token = userService.login(user);
+        return new LoginResponse(token);
     }
 }

@@ -12,6 +12,18 @@ import com.example.demo.product.PurchaseRecord;
 // 并且项目的构建路径中包含了该类所在的源文件或类文件
 // 这里假设 InventoryMapper 接口存在于指定包中，且项目配置无误
 import com.example.demo.product.PurchaseRecordMapper;
+// 为了解决 `io.jsonwebtoken.Jwts` 无法解析的问题，需要确保项目中已经添加了 Java JWT 库的依赖。
+// 如果使用 Maven 项目，可以在 `pom.xml` 中添加以下依赖：
+
+// 如果使用 Gradle 项目，可以在 `build.gradle` 中添加以下依赖：
+// implementation 'io.jsonwebtoken:jjwt:0.9.1'
+// 添加依赖后，重新构建项目以确保依赖被正确下载。
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import java.util.Date;
+import com.example.demo.security.JwtUtils; // 假设 JwtUtils 类在 com.example.demo.utils 包下，根据实际情况修改
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 
 
 
@@ -46,9 +58,13 @@ class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private ProductMapper productMapper;
+
     @Autowired
     private PurchaseRecordMapper purchaseRecordMapper;
 
+    @Autowired
+    // 为了解决 JwtUtils 无法解析为类型的问题，需要确保 JwtUtils 类已定义，并且在当前类中正确导入。
+    private JwtUtils jwtUtils;
 
 // 为了解决 InventoryMapper 无法解析为类型的问题，需要确保 InventoryMapper 接口已定义，并且在当前类中正确导入。
 // 假设 InventoryMapper 接口定义在 com.example.demo 包下，需要在文件开头添加导入语句。
@@ -57,30 +73,39 @@ class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public String purchaseProduct(String username, Long itemId, int quantity) {
-        User user = userMapper.selectByUsername(username);
-        if (user == null) {
-            return "用户不存在";
+    public String purchaseProduct(String username, Long productId, int quantity) {
+        Product product = productMapper.findById(productId);
+        if (product == null || product.getStock() < quantity) {
+            throw new RuntimeException("Insufficient inventory");
         }
-
-        // 为了解决 productMapper 无法解析的问题，需要确保 ProductMapper 接口已定义，并且在当前类中正确导入。
-        // 假设 ProductMapper 接口定义在 com.example.demo 包下，需要在文件开头添加导入语句。
-        // 同时，要确保项目中已经正确配置了 MyBatis 或其他持久层框架，以便能够生成 ProductMapper 接口的代理对象。
-        // 这里假设已经正确导入和配置，添加 @Autowired 注解注入 ProductMapper
         
-
-// 假设 ProductMapper 接口中缺少 getItemById 方法，需要在 ProductMapper 接口中添加该方法的定义
-// 以下是修改后的代码，需要确保 ProductMapper 接口中存在 getItemById 方法
-        Product item = productMapper.findById(itemId);
-        if (item == null || item.getStock() < quantity) {
-            return "库存不足";
-        }
-
-        productMapper.updateStock(itemId, item.getStock() - quantity);
-        purchaseRecordMapper.insert(new PurchaseRecord(username, itemId, quantity));
-        return "购买成功";
+        productMapper.updateStock(productId, product.getStock() - quantity);
+        
+// 如果 PurchaseRecord 类没有无参构造函数，需要根据其有参构造函数进行实例化
+// 假设 PurchaseRecord 类有一个包含 userId, productId, quantity 的构造函数
+// 这里先假设已经获取到了 userId，实际情况中需要根据业务逻辑获取
+        PurchaseRecord record = new PurchaseRecord(username, productId, quantity);
+        purchaseRecordMapper.insert(record);
+        
+        return "Purchase successful";
     }
 
+    @Override
+    public String login(User user) {
+        // 假设 userMapper.selectByUsername 返回的是 Optional<User>
+        java.util.Optional<User> existingUserOptional = userMapper.selectByUsername(user.getUsername());
+        User existingUser = existingUserOptional.orElse(null);
+        if (existingUser == null || !passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
+        }
+        // 假设需要将用户名转换为 Authentication 对象
+        // 这里简单创建一个 UsernamePasswordAuthenticationToken 作为示例
+// 为了解决 UsernamePasswordAuthenticationToken 无法解析为类型的问题，需要添加对应的导入语句
+// ...原始代码中的其他部分...
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(existingUser.getUsername(), null);
+        return jwtUtils.generateJwtToken(authentication);
+    }
     @Override
     public String register(User user) {
         if (userMapper.selectByUsername(user.getUsername()) != null) {
@@ -91,14 +116,6 @@ class UserServiceImpl implements UserService {
         return "User registered successfully";
     }
 
-    @Override
-    public String login(User user) {
-        User dbUser = userMapper.selectByUsername(user.getUsername());
-        if (dbUser == null || !passwordEncoder.matches(user.getPassword(), dbUser.getPassword())) {
-            return "Invalid username or password";
-        }
-        return "Login successful";
-    }
 }
   
 

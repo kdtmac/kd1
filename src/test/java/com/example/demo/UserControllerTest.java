@@ -8,6 +8,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -55,10 +61,28 @@ public class UserControllerTest {
     public void testLogin() throws Exception {
         String userJson = "{\"username\":\"test\",\"password\":\"pass\"}";
 
-        mockMvc.perform(post("/user/login")
+        String response = mockMvc.perform(post("/user/login")
                 .contentType("application/json")
                 .content(userJson))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Login successful"));
+                .andReturn().getResponse().getContentAsString();
+
+        // 验证响应是否包含JWT令牌
+        // 原代码中缺少导入静态方法的语句，添加后即可使用assertNotNull方法
+        assertNotNull(response);
+        assertTrue(response.contains("token"));
+
+        // 解析JWT令牌
+        String token = new ObjectMapper().readTree(response).get("token").asText();
+        assertNotNull(token);
+        System.out.println("JWT Token: " + token);
+        // 验证JWT令牌内容
+        Claims claims = Jwts.parser()
+                .setSigningKey("yourSecretKey")
+                .parseClaimsJws(token)
+                .getBody();
+        assertEquals("test", claims.getSubject());
+
+    
     }
 }
